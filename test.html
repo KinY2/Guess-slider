@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Slider Guess Game</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  font-size: 1.5em;
+  padding: 20px;
+}
+h2 {
+  font-size: 2em;
+}
+#slider {
+  width: 500px;
+  height: 25px;
+  margin: 20px 0;
+}
+button {
+  font-size: 1.5em;
+  padding: 10px 20px;
+  margin-right: 10px;
+}
+#out, #r-value {
+  font-weight: bold;
+  font-size: 1.5em;
+}
+.slider-labels {
+  width: 500px;
+  display: flex;
+  justify-content: space-between;
+}
+</style>
+</head>
+<body>
+
+<h2>Guess the hidden number on the slider (0–1)</h2>
+
+<p>The number to guess is: <span id="r-value"></span></p>
+
+<div class="slider-labels">
+  <span>0</span>
+  <span>1</span>
+</div>
+
+<input id="slider" type="range" min="0" max="1" step="0.000001">
+
+<button onclick="submitGuess()">Submit</button>
+<p id="out"></p>
+
+<script>
+// ===== CONFIG =====
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyAMjvzkVP4pMYRZYWTA2U74k6FKME8W64YLt7A8cmnoNmFI4VPWr32iHVuTNnogaes0g/exec";
+
+const slider = document.getElementById("slider");
+const out = document.getElementById("out");
+const rDisplay = document.getElementById("r-value");
+
+let r = 0; // current hidden number
+
+// function to generate a new random r and update display
+function newRandomR() {
+  r = Math.random();
+  rDisplay.textContent = r.toFixed(2);
+}
+
+// Submit guess function
+function submitGuess() {
+  const guess = Number(slider.value);
+  const error = Math.abs(guess - r);
+
+  out.textContent = "Number to guess = " + r.toFixed(2) + "| Your guess = " + guess.toFixed(2) + " | Error = " + error.toFixed(2);
+
+  // send data to Google Sheet backend
+  fetch(BACKEND_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ guess: guess, r: r, error: error })
+  }).then(() => console.log("Logged to Sheet"))
+    .catch(err => console.error(err));
+
+  // generate a new random number for the next trial
+  newRandomR();
+}
+
+// initialize first random number on page load
+newRandomR();
+</script>
+
+</body>
+</html>
+
